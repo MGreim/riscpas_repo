@@ -1,5 +1,5 @@
 Oberon RISC Emulator for Pascal
-==============================
+===============================
 
 translation of the Oberon Risc Emulator from
 Peter De Wachter to Freepascal.
@@ -13,13 +13,26 @@ SDL2 headers translation for Free Pascal
 SDL 
   Simple DirectMedia Layer
   Copyright (C) 1997-2013 Sam Lantinga <slouken@libsdl.org>
+  [SDL2](http://libsdl.org/).
 
 The Oberon bootload code 
   risc_boot.inc
-from Paul Reed
+from Paul Reed at http://projectoberon.com/
 
 Original Project Oberon
   design and source code copyright © 1991–2014 Niklaus Wirth (NW) and Jürg Gutknecht (JG)
+at http://www.inf.ethz.ch/personal/wirth/ProjectOberon/
+or http://projectoberon.com/
+
+Requirements: the freepacal compiler see: 
+
+[Freepascal](https://github.com/graemeg/freepascal)
+or
+http://www.freepascal.org/
+
+===============================================================================================
+
+below the orignal README.md from Peter de Wachter
 
 ===============================================================================================
 
