@@ -8,7 +8,6 @@ uses riscglob;
 
 TYPE
 
-
 fpty = OBJECT
         public
         FUNCTION add_(x, y : uint32_t;  u, v : Boolean) : uint32_t;
@@ -27,9 +26,7 @@ FUNCTION b2i(b : Boolean) : uint8_t;
 FUNCTION i2b(i : uint32_t) : Boolean;
 
 
-
 IMPLEMENTATION
-
 
 FUNCTION b2i(b : Boolean) : uint8_t;
 
@@ -42,7 +39,6 @@ FUNCTION i2b(i : uint32_t) : Boolean;
         BEGIN
         IF i <> 0 THEN i2b := True ELSE i2b := False;
         END;
-
 
 
 

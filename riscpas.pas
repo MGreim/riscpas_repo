@@ -35,7 +35,8 @@ from Paul Reed
 Original Project Oberon Sources and Disk Image:
   http://www.inf.ethz.ch/personal/wirth/ProjectOberon/index.html
   design and source code copyright (C) 1991-2014 Niklaus Wirth (NW) and Joerg Gutknecht (JG)
-----------------------------------------------------------------------------------------------
+
+  -----Peter de Wachter Copyright Notice-----------------------------------------------------------------
 
 Copyright
 ---------
@@ -58,7 +59,13 @@ PERFORMANCE OF THIS SOFTWARE.
 
 
 ===============================================================================================*)
-(* Bugs and known issues:
+(* Bugs and known issues by Markus Greim:
+- 06.may.2014
+  - refreshing screen works
+  - coredum.txt is created when program called by
+    riscpas oeberon.fs 1 10000
+    - the numbers are the stored cycles
+
 - 03.may.2014
   Its starting up so far
   - refreshing of the screen only when mouse is moved
@@ -85,11 +92,11 @@ WHITE = $fdf6e3;
 (*static uint32_t BLACK = 0x000000, WHITE = 0x00FF00;*)
 
 TYPE
-cachety =  array[0..Pred(RISC_SCREEN_WIDTH*RISC_SCREEN_HEIGHT div 32)] of uint32_t;
-bufferty = array[0..Pred(RISC_SCREEN_WIDTH*RISC_SCREEN_HEIGHT)] of uint32_t;
+cachety =  ARRAY[0..Pred(RISC_SCREEN_WIDTH*RISC_SCREEN_HEIGHT DIV 32)] of uint32_t;
+bufferty = ARRAY[0..Pred(RISC_SCREEN_WIDTH*RISC_SCREEN_HEIGHT)] OF uint32_t;
 
 
-var
+VAR
 cache: cachety;
 buffer: bufferty;
 
@@ -137,18 +144,18 @@ PROCEDURE update_texture(framebufferpointer : uint32_t;  texture: pSDL_Texture);
           FOR line := RISC_SCREEN_HEIGHT-1 DOWNTO 0 DO
 
              BEGIN
-               FOR col := 0 TO pred(RISC_SCREEN_WIDTH div 32) DO
+               FOR col := 0 TO pred(RISC_SCREEN_WIDTH DIV 32) DO
                    BEGIN
                      pixels := risc.RAM[idx+framebufferpointer];
                      IF pixels <> cache[idx] THEN
                          BEGIN
                            cache[idx] := pixels;
-                           IF line < dirty_y1   THEN dirty_y1 := line;
-                           IF line > dirty_y2   THEN dirty_y2 := line;
-                           IF col < dirty_x1    THEN dirty_x1 := col;
-                           IF col > dirty_x2    THEN dirty_x2 := col;
+                           IF line < dirty_y1 THEN dirty_y1 := line;
+                           IF line > dirty_y2 THEN dirty_y2 := line;
+                           IF  col < dirty_x1 THEN dirty_x1 := col;
+                           IF  col > dirty_x2 THEN dirty_x2 := col;
 
-                           bufferindex := line*RISC_SCREEN_WIDTH + col*32;
+                           bufferindex := line*RISC_SCREEN_WIDTH + col * 32;
 
                            FOR b := 0 TO Pred(32) DO
 
@@ -164,14 +171,13 @@ PROCEDURE update_texture(framebufferpointer : uint32_t;  texture: pSDL_Texture);
           IF dirty_y1 <= dirty_y2 THEN
 
                BEGIN
-                 rect.x := dirty_x1 * 32;
-                 rect.y := dirty_y1;
+                 rect.x :=  dirty_x1 * 32;
+                 rect.y :=  dirty_y1;
                  rect.w := (dirty_x2 - dirty_x1 + 1) * 32;
-                 rect.h := dirty_y2 - dirty_y1 + 1;
+                 rect.h := (dirty_y2 - dirty_y1 + 1);
 
-                 ptr:= @buffer[dirty_y1*RISC_SCREEN_WIDTH+dirty_x1*32];
-(*                 writeln('update'); *)
-                 SDL_UpdateTexture(texture,@rect,ptr,RISC_SCREEN_WIDTH*4);
+                 ptr:= @buffer[dirty_y1 * RISC_SCREEN_WIDTH + dirty_x1 * 32];
+                 SDL_UpdateTexture(texture, @rect, ptr, RISC_SCREEN_WIDTH * 4);
 
                END;
         END;
@@ -191,9 +197,8 @@ FUNCTION clamp(x, min, max : integer) : integer;
 FUNCTION ceil(x : double) : longint;
 
   BEGIN
-    Ceil:=Trunc(x);
-    If Frac(x)>0 THEN
-      Ceil:=Ceil+1;
+    Ceil := Trunc(x);
+    If Frac(x) > 0 THEN Ceil := Ceil+1;
   END;
 
 
@@ -219,8 +224,8 @@ FUNCTION scale_display(window : PSDL_WINDOW; VAR rect : TSDL_RECT) : double;
         h := ceil(RISC_SCREEN_HEIGHT * scale);
         rect.w := w;
         rect.h := h;
-        rect.x := (win_w^ - w ) DIV 2;
-        rect.y := (win_h^ -h ) DIV 2;
+        rect.x := (win_w^ - w) DIV 2;
+        rect.y := (win_h^ - h) DIV 2;
 
         scale_display := scale;
 
@@ -247,8 +252,8 @@ PROCEDURE main;
 
        scancode: keybufty;
        scancode_s : string;
-       len: 0..pred(maxkeybufsize);
-       l : 0..pred(maxkeybufsize);
+       len : 0..pred(maxkeybufsize);
+       l   : 0..pred(maxkeybufsize);
 
        frame_end: uint32_t;
 
@@ -259,6 +264,8 @@ PROCEDURE main;
        display_scale : double;
        k : TSDL_keysym;
 
+
+
        BEGIN
        fullscreen := false;
        mouse_was_offscreen := false;
@@ -268,13 +275,14 @@ PROCEDURE main;
          IF paramcount <> 1 THEN
             BEGIN
               writeln('Argv : ', paramcount);
-              writeln('Args : ', paramstr(0), ' ', paramstr(1));
-              writeln('Usage: risc disk-file-name');
+              writeln('Args : ', paramstr(0), ' ', paramstr(1),' ',paramstr(2),' ',paramstr(3));
+              writeln('Usage: riscpas disk-file-name [coredumpfile_from_cycle coredumpfile_to_cycle]');
+              writeln('Stop with Alt-F4');
               exitcode := 1;
               exit;
             END;
 
-         risc.init(paramstr(1));
+         risc.init(paramstr(1), paramstr(2), paramstr(3));
 
 
          IF SDL_Init(SDL_INIT_VIDEO) <> 0 THEN
@@ -313,6 +321,7 @@ PROCEDURE main;
 
          window := SDL_CreateWindow('Project Oberon',window_pos, window_pos, RISC_SCREEN_WIDTH,RISC_SCREEN_HEIGHT, window_flags);
          IF window = NIL THEN
+
              BEGIN
                writeln('Could not create window: ',SDL_GetError);
                exitcode:= 1;
@@ -322,6 +331,7 @@ PROCEDURE main;
          renderer := SDL_CreateRenderer(window,-1,0);
 
          IF renderer= NIL THEN
+
              BEGIN
                writeln('Could not create renderer: ',SDL_GetError);
                exitcode:= 1;
@@ -347,24 +357,23 @@ PROCEDURE main;
          SDL_RenderCopy(renderer,texture,NIL,display_rect);
          SDL_RenderPresent(renderer);
 
-         done:=false;
+         done := False;
          mouse_was_offscreen := False;
          new(event);
-(*         new(display_rect);  *)
-         writeln('start loop 282');
-         while NOT(done) DO
+
+         WHILE NOT(done) DO
 
             BEGIN
               frame_start:=SDL_GetTicks;
-              while (SDL_PollEvent(event) = 1) DO
+              WHILE (SDL_PollEvent(event) = 1) DO
 
                    BEGIN
 
-                   case event^.type_ of
+                   CASE event^.type_ OF
 
                     SDL_QUITEV:
                             BEGIN
-                              done:= true;
+                              done:= True;
                             END;
 
                     SDL_WINDOWEVENT:
@@ -375,8 +384,8 @@ PROCEDURE main;
                                 display_scale := scale_display(window, display_rect^);
                                 END;
                             END;
-                    SDL_MOUSEMOTION:
 
+                    SDL_MOUSEMOTION:
                             BEGIN
                               scaled_x := 1;
                               scaled_y := 1;
@@ -395,12 +404,14 @@ PROCEDURE main;
 
                               risc.mouse_moved(x,RISC_SCREEN_HEIGHT - y -1);
                             END;
+
                     SDL_MOUSEBUTTONDOWN,
                     SDL_MOUSEBUTTONUP:
                             BEGIN
                               down := event^.button.state=SDL_PRESSED;
                               risc.mouse_button(event^.button.button,down);
                             END;
+
                     SDL_KEYDOWN,
                     SDL_KEYUP:
                             BEGIN
@@ -441,9 +452,9 @@ PROCEDURE main;
                                         risc.mouse_button(2, down);
                                         END;
 
-                                  ELSE
+                               ELSE (* else case keyup *)
+                                        (* BEGIN *)
                                         len := ps2_encode(event^.key.keysym.scancode,event^.key.state=SDL_PRESSED,scancode_s);
-                                          (*  writeln(' Len : ', len); *)
                                             IF len > 0 THEN
 
                                                 BEGIN
@@ -456,13 +467,13 @@ PROCEDURE main;
                                                  END;
                                         risc.keyboard_input(scancode, len);
                                         END; (*else case keyup *)
-                         END (* case *)
+                              END; (* case k.sym *)
 
-                   END;{case?}
-
+                   END;  (* case event^.typ *)
+              END;(* while poll event *)
               risc.set_time(frame_start);
 
-              risc.run(CPU_HZ div (FPS div 3));
+              risc.run(CPU_HZ DIV FPS);
               update_texture(risc.get_framebuffer_ptr, texture);
               SDL_RenderClear(renderer);
               SDL_RenderCopy(renderer, texture, NIL, display_rect);
@@ -473,8 +484,7 @@ PROCEDURE main;
 
               IF delay > 0 THEN SDL_Delay(delay);
 
-           END;(* while poll event *)
-         exitcode := 0;
+              exitcode := 0;
         END; (* while not done *)
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
