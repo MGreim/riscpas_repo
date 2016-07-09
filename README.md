@@ -30,6 +30,12 @@ Requirements: the freepacal compiler see:
 or
 http://www.freepascal.org/
 
+09.jun.2016
+- Added the latest dsk file from Peter de Wachter
+- removed 2 calls in SDL2.pas because they are not compatible with libSDL2-2.0.0
+- will now try to port this program to [Ultibo](http://www.ultibo.org) 
+
+
 ===============================================================================================
 
 below the orignal README.md from Peter de Wachter

@@ -2146,9 +2146,9 @@ type
   end;
 
 //https://raw.github.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt
-function SDL_GameControllerAddMappingsFromRW(rw: PSDL_RWops;
-                                             freerw: longint): longint; lSDL;
-function SDL_GameControllerAddMappingsFromFile(file_: pchar): longint;
+// function SDL_GameControllerAddMappingsFromRW(rw: PSDL_RWops;
+  //                                           freerw: longint): longint; lSDL;
+// function SDL_GameControllerAddMappingsFromFile(file_: pchar): longint; 
 
 {
 This string shows an example of a valid mapping for a controller
@@ -2871,12 +2871,12 @@ end;
 
 //=====SDL_GAMECONTROLLER=====
 
-function SDL_GameControllerAddMappingsFromFile(file_: pchar): longint;
+ (* function SDL_GameControllerAddMappingsFromFile(file_: pchar): longint;
 begin
   SDL_GameControllerAddMappingsFromFile:=SDL_GameControllerAddMappingsFromRW(
     SDL_RWFromFile(file_, 'r'), 1);
 end;
-
+*)
 //=====SDL_EVENTS=====
 
 function SDL_GetEventState(type_: Uint32): Uint8;
